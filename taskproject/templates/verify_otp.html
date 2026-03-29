@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Verify OTP</title>
+</head>
+
+<body>
+
+<h2>Enter OTP</h2>
+
+<input type="text" id="otp">
+
+<button onclick="verifyOTP()">Verify</button>
+
+<script>
+
+const email = new URLSearchParams(window.location.search).get("email")
+
+function verifyOTP(){
+
+let otp = document.getElementById("otp").value
+
+fetch('/api/verify-otp/',{
+method:'POST',
+headers:{
+'Content-Type':'application/json'
+},
+body:JSON.stringify({
+email:email,
+otp:otp
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.success){
+window.location.href="/reset-password/?email="+email
+}else{
+alert("Invalid OTP")
+}
+
+})
+
+}
+
+</script>
+
+</body>
+</html>

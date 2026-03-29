@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+
+<div class="container mt-5">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+<h2>Task Management System</h2>
+
+<div>
+<span class="me-3">Welcome <strong>{{ request.user.username }}</strong></span>
+<a href="/add/" class="btn btn-primary">Add Task</a>
+<a href="/profile/" class="btn btn-info">Profile</a>
+<button onclick="logout()" class="btn btn-danger">Logout</button>
+</div>
+
+</div>
+
+<div class="mb-3">
+
+<button class="btn btn-secondary" onclick="filterTasks('All')">All</button>
+<button class="btn btn-info" onclick="filterTasks('To Do')">To Do</button>
+<button class="btn btn-warning" onclick="filterTasks('In Progress')">In Progress</button>
+<button class="btn btn-success" onclick="filterTasks('Done')">Done</button>
+
+</div>
+
+<div class="mb-3">
+
+<input type="text" id="search" placeholder="Search task" class="form-control w-25 d-inline">
+
+<button onclick="searchTask()" class="btn btn-primary">Search</button>
+
+<button onclick="loadTasks()" class="btn btn-secondary">Clear</button>
+
+</div>
+
+<hr>
+<hr>
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+
+<tr>
+<th>Title</th>
+<th>Description</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Due Date</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody id="taskTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+    loadTasks();
+});
+
+function loadTasks(){
+
+fetch('/api/tasks/', {
+credentials:"same-origin"
+})
+.then(response => response.json())
+.then(data => {
+
+let table = document.getElementById("taskTable");
+
+table.innerHTML = "";
+
+data.results.forEach(task => {
+
+table.innerHTML += `
+<tr>
+<td>${task.title}</td>
+<td>${task.description}</td>
+<td>${task.status}</td>
+<td>${task.priority}</td>
+<td>${task.due_date}</td>
+
+<td>
+<a href="/update/${task.id}" class="btn btn-warning btn-sm">Edit</a>
+<a href="#" onclick="deleteTask(${task.id})" class="btn btn-danger btn-sm">Delete</a>
+</td>
+
+</tr>
+`;
+
+});
+
+});
+
+}
+
+
+function filterTasks(status){
+
+fetch('/api/tasks/', {
+credentials:"same-origin"
+})
+.then(response => response.json())
+.then(data => {
+
+let table = document.getElementById("taskTable");
+
+table.innerHTML = "";
+
+data.forEach(task => {
+
+if(status === "All" || task.status === status){
+
+table.innerHTML += `
+<tr>
+<td>${task.title}</td>
+<td>${task.description}</td>
+<td>${task.status}</td>
+<td>${task.priority}</td>
+<td>${task.due_date}</td>
+
+<td>
+<a href="/update/${task.id}" class="btn btn-warning btn-sm">Edit</a>
+<a href="#" onclick="deleteTask(${task.id})" class="btn btn-danger btn-sm">Delete</a>
+</td>
+
+</tr>
+`;
+
+}
+
+});
+
+});
+
+}
+
+
+function searchTask(){
+
+let search = document.getElementById("search").value.toLowerCase()
+
+fetch('/api/tasks/', {
+credentials:"same-origin"
+})
+.then(response => response.json())
+.then(data => {
+
+let table = document.getElementById("taskTable");
+
+table.innerHTML = "";
+
+data.forEach(task => {
+
+if(
+task.title.toLowerCase().includes(search) ||
+task.description.toLowerCase().includes(search)
+){
+
+table.innerHTML += `
+<tr>
+<td>${task.title}</td>
+<td>${task.description}</td>
+<td>${task.status}</td>
+<td>${task.priority}</td>
+<td>${task.due_date}</td>
+
+<td>
+<a href="/update/${task.id}" class="btn btn-warning btn-sm">Edit</a>
+<a href="#" onclick="deleteTask(${task.id})" class="btn btn-danger btn-sm">Delete</a>
+</td>
+
+</tr>
+`;
+
+}
+
+});
+
+});
+
+}
+
+function getCookie(name) {
+let cookieValue = null;
+if (document.cookie && document.cookie !== '') {
+const cookies = document.cookie.split(';');
+for (let i = 0; i < cookies.length; i++) {
+const cookie = cookies[i].trim();
+if (cookie.substring(0, name.length + 1) === (name + '=')) {
+cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+break;
+}
+}
+}
+return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+function deleteTask(id){
+
+if(confirm("Are you sure you want to delete?")){
+
+fetch(`/api/delete/${id}/`,{
+method:"DELETE",
+credentials:"same-origin",
+headers:{
+"X-CSRFToken": csrftoken
+}
+})
+.then(res=>{
+loadTasks()
+})
+
+}
+
+}
+
+function logout(){
+
+fetch('/api/logout/',{
+method:'GET',
+credentials:'same-origin'
+})
+.then(()=>{
+window.location.href='/login/'
+})
+
+}
+
+</script>
+
+</body>
+
+</html>
