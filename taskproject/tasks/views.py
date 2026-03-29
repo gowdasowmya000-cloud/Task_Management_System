@@ -117,7 +117,7 @@ def send_otp(request):
     send_mail(
         'Password Reset OTP',
         f'Your OTP is {otp}',
-        'gowdasowmya000@gmail.com',
+        'your email@gmail.com',
         [user.email],
         fail_silently=False,
     )
